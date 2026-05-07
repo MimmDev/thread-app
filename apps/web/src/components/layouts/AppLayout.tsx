@@ -51,11 +51,14 @@ export function AppLayout({ children, threads = [] }: AppLayoutProps) {
               <SidebarMenu>
                 {threads.map((thread) => {
                   const isActive = pathname === `/dashboard/${thread.id}`;
+                  const isTied = thread.status === "tied";
                   return (
                     <SidebarMenuItem key={thread.id}>
                       <SidebarMenuButton asChild isActive={isActive}>
                         <Link href={`/dashboard/${thread.id}`}>
-                          <span>{thread.title}</span>
+                          <span className={isTied ? "line-through text-muted-foreground" : ""}>
+                            {thread.title}
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

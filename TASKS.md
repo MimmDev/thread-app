@@ -33,7 +33,7 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 
 - [x] Create `/dashboard` layout with sidebar + main content area unless it already exists.
 - [x] Sidebar: list of threads, active state, new thread button
-- [ ] Sidebar: show tied threads as struck-through
+- [x] Sidebar: show tied threads as struck-through
 - [ ] New thread: inline input or modal to name and create a thread
 
 ## 6. Frontend — thread view
