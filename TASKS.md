@@ -13,25 +13,25 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 ## 2. Thread server actions
 
 - [x] `createThread(title)` — create a thread for the authed user, revalidate thread list
-- [ ] `getThreads()` — fetch all threads for the authed user
-- [ ] `updateThread(id, { title?, status? })` — rename or tie up a thread, revalidate thread list
+- [x] `getThreads()` — fetch all threads for the authed user
+- [x] `updateThread(id, { title?, status? })` — rename or tie up a thread, revalidate thread list
 
 ## 3. Bead server actions
 
-- [ ] `getBeads(threadId)` — fetch beads for a thread; resolve supersedes chain and return latest version of each note only, with full history available
-- [ ] `markTaskDone(beadId)` — mark a task bead as done, revalidate thread feed
-- [ ] `submitDump(threadId, dump)` — run extraction, write resulting beads, return new beads
+- [x] `getBeads(threadId)` — fetch beads for a thread; resolve supersedes chain and return latest version of each note only, with full history available
+- [x] `markTaskDone(beadId)` — mark a task bead as done, revalidate thread feed
+- [x] `submitDump(threadId, dump)` — run extraction, write resulting beads, return new beads
 
 ## 4. Extraction service
 
-- [ ] Create `apps/web/src/lib/extract.ts` — takes a dump string + thread context beads, calls Claude API, returns parsed bead JSON
-- [ ] Implement hybrid context retrieval: last 5 beads by `createdAt` + top 5 by vector similarity to the dump, deduped
-- [ ] Implement embedding generation for new/updated beads after extraction
-- [ ] Wire extraction service into `submitDump`
+- [x] Create `apps/web/src/lib/extract.ts` — takes a dump string + thread context beads, calls Claude API, returns parsed bead JSON
+- [x] Implement hybrid context retrieval: last 5 beads by `createdAt` + top 5 by vector similarity to the dump, deduped
+- [x] Implement embedding generation for new/updated beads after extraction
+- [x] Wire extraction service into `submitDump`
 
 ## 5. Frontend — layout and sidebar
 
-- [ ] Create `/dashboard` layout with sidebar + main content area
+- [ ] Create `/dashboard` layout with sidebar + main content area unless it already exists.
 - [ ] Sidebar: list of threads, active state, new thread button
 - [ ] Sidebar: show tied threads as struck-through
 - [ ] New thread: inline input or modal to name and create a thread
