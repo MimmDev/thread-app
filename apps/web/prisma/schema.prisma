@@ -13,4 +13,28 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  threads   Thread[]
+}
+
+model Thread {
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  beads     Bead[]
+}
+
+model Bead {
+  id          String                  @id @default(cuid())
+  threadId    String
+  thread      Thread                  @relation(fields: [threadId], references: [id])
+  type        String
+  content     Json
+  supersedes  String?
+  previous    Bead?                   @relation("BeadHistory", fields: [supersedes], references: [id])
+  next        Bead[]                  @relation("BeadHistory")
+  createdAt   DateTime                @default(now())
+  embedding   Unsupported("vector(1536)")?
 }
