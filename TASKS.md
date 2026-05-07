@@ -43,7 +43,7 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 - [x] Note bead component: title + markdown content + history toggle
 - [x] Task bead component: checkbox (with done state, optimistic update on check), title, optional due date
 - [x] Link bead component: URL + label with external link icon
-- [ ] History toggle: expand superseded bead chain beneath the latest version
+- [x] History toggle: expand superseded bead chain beneath the latest version
 
 ## 7. Frontend — dump input
 
