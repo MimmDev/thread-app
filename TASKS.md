@@ -47,7 +47,7 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 
 ## 7. Frontend — dump input
 
-- [ ] Textarea with send button (use send icon, not text)
+- [x] Textarea with send button (use send icon, not text)
 - [ ] On submit: call `submitDump`, optimistically append placeholder beads to feed immediately
 - [ ] On response: replace placeholder beads with real beads from server
 - [ ] Error state: remove placeholders and surface error if extraction fails
