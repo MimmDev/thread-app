@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createThread } from "@/lib/actions/threads";
+import { signOut } from "next-auth/react";
 
 type Thread = {
   id: string;
@@ -120,6 +122,16 @@ export function AppLayout({ children, threads = [] }: AppLayoutProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
+        <SidebarFooter className="px-4 py-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-muted-foreground"
+            onClick={() => signOut()}
+          >
+            Sign out
+          </Button>
+        </SidebarFooter>
       </Sidebar>
       <main className="flex flex-col flex-1 min-h-screen">{children}</main>
     </SidebarProvider>
