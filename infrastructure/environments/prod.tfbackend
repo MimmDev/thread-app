@@ -1,0 +1,5 @@
+bucket         = "tfstate-375883933948"
+key            = "test-app/prod/terraform.tfstate"
+region         = "ap-southeast-2"
+dynamodb_table = "tfstate-lock"
+encrypt        = true

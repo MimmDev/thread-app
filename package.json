@@ -1,0 +1,17 @@
+{
+  "name": "<APP_NAME>",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build --workspaces --if-present",
+    "infra:up:prod": "terraform -chdir=infrastructure apply -var-file=environments/prod.tfvars -var-file=environments/prod.secrets.tfvars",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w web",
+    "db:generate": "npm run db:generate -w web",
+    "db:studio": "npm run db:studio -w web"
+  }
+}
