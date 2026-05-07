@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ThreadHeader } from "@/components/ThreadHeader";
-import { BeadFeed } from "@/components/BeadFeed";
-import { DumpInput } from "@/components/DumpInput";
+import { ThreadView } from "@/components/ThreadView";
 import { getBeads } from "@/lib/actions/beads";
 
 type Props = {
@@ -26,10 +25,7 @@ export default async function ThreadPage({ params }: Props) {
   return (
     <div className="flex flex-col flex-1">
       <ThreadHeader thread={thread} />
-      <div className="flex-1 overflow-y-auto">
-        <BeadFeed beads={beads} />
-      </div>
-      <DumpInput threadId={threadId} />
+      <ThreadView threadId={threadId} initialBeads={beads} />
     </div>
   );
 }
