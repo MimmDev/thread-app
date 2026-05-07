@@ -31,7 +31,7 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 
 ## 5. Frontend — layout and sidebar
 
-- [ ] Create `/dashboard` layout with sidebar + main content area unless it already exists.
+- [x] Create `/dashboard` layout with sidebar + main content area unless it already exists.
 - [ ] Sidebar: list of threads, active state, new thread button
 - [ ] Sidebar: show tied threads as struck-through
 - [ ] New thread: inline input or modal to name and create a thread
