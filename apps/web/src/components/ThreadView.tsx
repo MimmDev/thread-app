@@ -47,7 +47,7 @@ export function ThreadView({ threadId, initialBeads }: Props) {
       setBeads((prev) =>
         prev
           .filter((b) => b.id !== placeholder.id)
-          .concat(newBeads as BeadWithHistory[])
+          .concat(newBeads.map((b) => ({ ...b, history: [] })) as BeadWithHistory[])
       );
     } catch {
       setBeads((prev) => prev.filter((b) => b.id !== placeholder.id));
