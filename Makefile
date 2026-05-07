@@ -1,4 +1,14 @@
-.PHONY: bootstrap-repo
+.PHONY: bootstrap-repo bootstrap-infrastructure
+
+bootstrap-infrastructure:
+	terraform -chdir=infrastructure init
+	terraform -chdir=infrastructure apply -var-file=environments/prod.tfvars -var-file=environments/prod.secrets.tfvars
+	@auth0_id=$$(terraform -chdir=infrastructure output -raw AUTH_AUTH0_ID); \
+	auth0_issuer=$$(terraform -chdir=infrastructure output -raw AUTH_AUTH0_ISSUER); \
+	sed -i '' "s|AUTH_AUTH0_ID=.*|AUTH_AUTH0_ID=$$auth0_id|" .env; \
+	sed -i '' "s|AUTH_AUTH0_ISSUER=.*|AUTH_AUTH0_ISSUER=$$auth0_issuer|" .env; \
+	echo "AUTH_AUTH0_ID and AUTH_AUTH0_ISSUER written to .env"; \
+	echo "ACTION REQUIRED: set AUTH_AUTH0_SECRET in .env (Auth0 dashboard → Applications → your app → Settings → Client Secret)"
 
 bootstrap-repo:
 	@read -p "App Name (kebab-case): " app_name_kebab; \

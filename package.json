@@ -1,5 +1,5 @@
 {
-  "name": "<APP_NAME>",
+  "name": "thread-app",
   "private": true,
   "workspaces": [
     "apps/*"
