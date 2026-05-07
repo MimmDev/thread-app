@@ -49,5 +49,5 @@ Build tasks in order. Complete one before moving to the next. Check off each tas
 
 - [x] Textarea with send button (use send icon, not text)
 - [x] On submit: call `submitDump`, optimistically append placeholder beads to feed immediately
-- [ ] On response: replace placeholder beads with real beads from server
-- [ ] Error state: remove placeholders and surface error if extraction fails
+- [x] On response: replace placeholder beads with real beads from server
+- [x] Error state: remove placeholders and surface error if extraction fails
