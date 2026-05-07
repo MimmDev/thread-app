@@ -72,6 +72,7 @@ export async function extract(
     messages: [{ role: 'user', content: userMessage }],
   })
 
-  const text = message.content.find((b) => b.type === 'text')?.text ?? ''
+  const raw = message.content.find((b) => b.type === 'text')?.text ?? ''
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
   return JSON.parse(text) as ExtractionResult
 }
