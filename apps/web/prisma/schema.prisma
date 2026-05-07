@@ -29,7 +29,7 @@ model Thread {
 model Bead {
   id          String                  @id @default(cuid())
   threadId    String
-  thread      Thread                  @relation(fields: [threadId], references: [id])
+  thread      Thread                  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   type        String
   content     Json
   supersedes  String?

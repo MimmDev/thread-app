@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth'
 import Auth0 from 'next-auth/providers/auth0'
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
@@ -15,6 +14,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user }) {
       if (!user.email) return false
+      const { db } = await import('@/lib/db')
       await db.user.upsert({
         where: { email: user.email },
         update: { name: user.name ?? undefined },

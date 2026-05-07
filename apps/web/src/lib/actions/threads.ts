@@ -35,6 +35,14 @@ export async function updateThread(id: string, data: { title?: string; status?: 
   return thread
 }
 
+export async function deleteThread(id: string) {
+  const user = await getAuthenticatedUser()
+
+  await db.thread.delete({ where: { id, userId: user.id } })
+
+  revalidatePath('/dashboard')
+}
+
 export async function createThread(title: string) {
   const user = await getAuthenticatedUser()
 

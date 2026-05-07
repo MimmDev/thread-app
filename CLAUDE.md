@@ -12,6 +12,10 @@ This repo runs **Next.js 16** with breaking changes from earlier versions. Conve
 
 Notable rename: `middleware.ts` is now `proxy.ts` (`apps/web/src/proxy.ts`). Do not recreate `middleware.ts`.
 
+## React Server Components
+
+Components are **server-rendered by default** in the App Router. Only add `"use client"` when a component needs browser APIs, event handlers, or React state/effects. Keep client boundaries as small and leaf-level as possible — extract just the interactive part into its own file rather than marking an entire layout as a client component.
+
 ## UI components
 
 Use **shadcn/ui** components for all UI work. Before building a custom component, check whether shadcn already has one (`apps/web/src/components/ui/`). Add missing shadcn components with `npx shadcn@latest add <component>` from inside `apps/web/`.

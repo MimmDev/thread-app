@@ -66,9 +66,10 @@ export async function submitDump(threadId: string, dump: string) {
   const { new_beads, updated_beads } = await extract(dump, contextBeads)
 
   const created = await Promise.all([
-    ...new_beads.map((b: NewBead) =>
-      db.bead.create({ data: { threadId, type: b.type, content: b as object } })
-    ),
+    ...new_beads.map((b: NewBead) => {
+      const content = b.type === 'task' ? { ...b, done: false } : b
+      return db.bead.create({ data: { threadId, type: b.type, content: content as object } })
+    }),
     ...updated_beads.map((b) =>
       db.bead.create({
         data: { threadId, type: b.type, content: b as object, supersedes: b.supersedes },

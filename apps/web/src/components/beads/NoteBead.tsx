@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { type BeadWithHistory } from "@/lib/actions/beads";
 
 type Props = { bead: BeadWithHistory };
@@ -14,7 +15,7 @@ export function NoteBead({ bead }: Props) {
   const historyCount = bead.history.length;
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <Card className="p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 px-2 py-0.5 font-medium">
           note
@@ -22,7 +23,7 @@ export function NoteBead({ bead }: Props) {
         <span className="text-xs text-muted-foreground">{formatTime(bead.createdAt)}</span>
       </div>
 
-      <p className="font-semibold mt-3">{content.title}</p>
+      <p className="font-semibold mt-1">{content.title}</p>
       <div className="prose prose-sm dark:prose-invert mt-1 max-w-none">
         <ReactMarkdown>{content.content}</ReactMarkdown>
       </div>
@@ -57,10 +58,10 @@ export function NoteBead({ bead }: Props) {
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
 function formatTime(date: Date) {
-  return new Date(date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }

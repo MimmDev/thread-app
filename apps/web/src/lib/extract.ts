@@ -40,9 +40,10 @@ const SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has subm
 Given the thread's existing beads as context and the raw dump, produce meaningful beads.
 
 Rules:
-- Create new beads for genuinely new information.
-- If something updates an existing note bead, produce an updated_bead with the existing bead's ID in supersedes.
-- Extract tasks (things to do) and links (URLs) as their own bead types.
+- Always produce at least one bead. The user has deliberately submitted this dump and expects it to be captured.
+- Extract tasks (things to do) as task beads and links (URLs) as link beads.
+- Everything else becomes a note bead. If the dump is short or vague, capture it as a note anyway.
+- If something updates an existing note bead, produce an updated_bead with the existing bead's ID in supersedes instead of a new bead.
 - All note content must be in markdown.
 - If none of the existing beads are relevant, ignore them.
 - Respond ONLY with valid JSON, no preamble or markdown fences.

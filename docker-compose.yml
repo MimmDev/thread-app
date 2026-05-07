@@ -11,5 +11,16 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  web:
+    build: .
+    ports:
+      - "3010:3010"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/thread
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   db_data:
