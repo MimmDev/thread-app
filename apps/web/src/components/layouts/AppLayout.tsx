@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Sidebar,
@@ -16,6 +18,8 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createThread } from "@/lib/actions/threads";
 
 type Thread = {
   id: string;
@@ -31,6 +35,37 @@ type AppLayoutProps = {
 
 export function AppLayout({ children, threads = [] }: AppLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [creatingThread, setCreatingThread] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [pending, setPending] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (creatingThread) inputRef.current?.focus();
+  }, [creatingThread]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    setPending(true);
+    try {
+      const thread = await createThread(trimmed);
+      setNewTitle("");
+      setCreatingThread(false);
+      router.push(`/dashboard/${thread.id}`);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Escape") {
+      setNewTitle("");
+      setCreatingThread(false);
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -39,15 +74,32 @@ export function AppLayout({ children, threads = [] }: AppLayoutProps) {
           <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-widest">
             Threads
           </SidebarGroupLabel>
-          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-            <Link href="/dashboard/new">
-              <Plus className="h-4 w-4" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setCreatingThread(true)}
+          >
+            <Plus className="h-4 w-4" />
           </Button>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
+              {creatingThread && (
+                <form onSubmit={handleSubmit} className="px-2 pb-2">
+                  <Input
+                    ref={inputRef}
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={() => { if (!newTitle.trim()) setCreatingThread(false); }}
+                    placeholder="Thread name…"
+                    disabled={pending}
+                    className="h-8 text-sm"
+                  />
+                </form>
+              )}
               <SidebarMenu>
                 {threads.map((thread) => {
                   const isActive = pathname === `/dashboard/${thread.id}`;
