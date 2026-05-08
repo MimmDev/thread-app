@@ -42,14 +42,14 @@ export function NewThreadButton() {
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      <div className="flex items-center justify-between px-2 mb-1">
+      <div className="flex items-center justify-between pl-2 pr-1 mb-1">
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Threads
         </span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6"
+          className="h-5 w-5"
           onClick={() => setCreatingThread(true)}
         >
           <Plus className="h-4 w-4" />

@@ -1,13 +1,29 @@
+"use client";
+
+import { useState } from "react";
 import { type BeadWithHistory } from "@/lib/actions/beads";
 import { NoteBead } from "@/components/beads/NoteBead";
 import { TaskBead } from "@/components/beads/TaskBead";
 import { LinkBead } from "@/components/beads/LinkBead";
+import { Card } from "@/components/ui/card";
 
 type Props = {
   beads: BeadWithHistory[];
+  onJoin: (idA: string, idB: string) => Promise<void>;
 };
 
-export function BeadFeed({ beads }: Props) {
+export function BeadFeed({ beads, onJoin }: Props) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+
+  function handleDrop(targetId: string) {
+    if (draggingId && draggingId !== targetId) {
+      onJoin(draggingId, targetId);
+    }
+    setDraggingId(null);
+    setDropTargetId(null);
+  }
+
   if (beads.length === 0) {
     return (
       <p className="text-muted-foreground text-sm px-6 py-8">
@@ -19,9 +35,26 @@ export function BeadFeed({ beads }: Props) {
   return (
     <div className="flex flex-col gap-3 px-6 py-4">
       {beads.map((bead) => {
-        if (bead.type === "note") return <NoteBead key={bead.id} bead={bead} />;
+        if (bead.type === "note") return (
+          <NoteBead
+            key={bead.id}
+            bead={bead}
+            isDragging={draggingId === bead.id}
+            isDropTarget={dropTargetId === bead.id && draggingId !== bead.id}
+            onDragStart={() => setDraggingId(bead.id)}
+            onDragEnd={() => { setDraggingId(null); setDropTargetId(null); }}
+            onDragOver={(e: React.DragEvent) => { e.preventDefault(); setDropTargetId(bead.id); }}
+            onDragLeave={() => setDropTargetId(null)}
+            onDrop={() => handleDrop(bead.id)}
+          />
+        );
         if (bead.type === "task") return <TaskBead key={bead.id} bead={bead} />;
         if (bead.type === "link") return <LinkBead key={bead.id} bead={bead} />;
+        if (bead.type === "_placeholder") return (
+          <Card key={bead.id} className="p-4 text-sm text-muted-foreground animate-pulse">
+            Processing info dump...
+          </Card>
+        );
         return null;
       })}
     </div>

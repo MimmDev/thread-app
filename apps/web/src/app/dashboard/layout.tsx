@@ -7,14 +7,10 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params?: Promise<{ threadId?: string }>;
 }) {
   const session = await auth();
-  const resolvedParams = await params;
-  const activeThreadId = resolvedParams?.threadId;
 
   let threads: { id: string; title: string; status: string }[] = [];
 
@@ -34,7 +30,7 @@ export default async function DashboardLayout({
   return (
     <AppLayout
       sidebarContent={
-        <ThreadList threads={threads} activeThreadId={activeThreadId} />
+        <ThreadList threads={threads} />
       }
     >
       {children}

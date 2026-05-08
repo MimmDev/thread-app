@@ -33,6 +33,7 @@ model Bead {
   type        String
   content     Json
   supersedes  String?
+  mergedFrom  String[]                @default([])
   previous    Bead?                   @relation("BeadHistory", fields: [supersedes], references: [id])
   next        Bead[]                  @relation("BeadHistory")
   createdAt   DateTime                @default(now())

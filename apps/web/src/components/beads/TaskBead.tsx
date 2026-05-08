@@ -40,7 +40,6 @@ export function TaskBead({ bead }: Props) {
           {formatTime(bead.createdAt)}
         </span>
       </div>
-
       <div className="flex items-center gap-3 mt-0">
         <Checkbox
           checked={done}

@@ -5,7 +5,7 @@ import { SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BeadFeed } from "@/components/BeadFeed";
-import { submitDump, type BeadWithHistory } from "@/lib/actions/beads";
+import { submitDump, joinBeads, type BeadWithHistory } from "@/lib/actions/beads";
 
 type Props = {
   threadId: string;
@@ -19,11 +19,12 @@ function makePlaceholder(threadId: string): PlaceholderBead {
     _placeholder: true,
     id: `placeholder-${Date.now()}`,
     threadId,
-    type: "note",
-    content: { title: "Processing…", content: "" },
+    type: "_placeholder",
+    content: {},
     supersedes: null,
     createdAt: new Date(),
     history: [],
+    mergedBeads: [],
   };
 }
 
@@ -32,6 +33,11 @@ export function ThreadView({ threadId, initialBeads }: Props) {
   const [dump, setDump] = useState("");
   const [pending, setPending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function handleJoin(idA: string, idB: string) {
+    const updatedBeads = await joinBeads(idA, idB);
+    setBeads(updatedBeads as BeadWithHistory[]);
+  }
 
   const handleSubmit = useCallback(async () => {
     const text = dump.trim();
@@ -43,12 +49,8 @@ export function ThreadView({ threadId, initialBeads }: Props) {
     setPending(true);
 
     try {
-      const newBeads = await submitDump(threadId, text);
-      setBeads((prev) =>
-        prev
-          .filter((b) => b.id !== placeholder.id)
-          .concat(newBeads.map((b) => ({ ...b, history: [] })) as BeadWithHistory[])
-      );
+      const updatedBeads = await submitDump(threadId, text);
+      setBeads(updatedBeads as BeadWithHistory[]);
     } catch {
       setBeads((prev) => prev.filter((b) => b.id !== placeholder.id));
     } finally {
@@ -66,7 +68,7 @@ export function ThreadView({ threadId, initialBeads }: Props) {
   return (
     <>
       <div className="flex-1 overflow-y-auto">
-        <BeadFeed beads={beads} />
+        <BeadFeed beads={beads} onJoin={handleJoin} />
       </div>
       <div className="border-t bg-background px-4 py-3">
         <div className="relative flex items-end gap-2">
