@@ -91,18 +91,22 @@ Jose was a bad candidate.
   return message.content.find((b) => b.type === 'text')?.text.trim() ?? content
 }
 
-const UPDATE_SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has selected an existing bead and submitted a dump describing changes to it. Update the bead's content based on the dump.
+function updateSystemPrompt() {
+  return `You are a personal knowledge assistant. The user has selected an existing bead and submitted a dump describing changes to it. Update the bead's content based on the dump.
+
+Today's date is ${new Date().toISOString().slice(0, 10)}.
 
 Rules:
 - Modify only what the dump explicitly changes or adds. Preserve everything else.
 - For notes: content must be in clear, well-structured markdown.
-- For tasks: if the dump mentions a new due date, parse it as ISO8601. If it removes the due date, set due_at to null.
+- For tasks: if the dump mentions a due date (including relative ones like "next Monday" or "tomorrow"), resolve it against today's date and store as ISO8601 (date only, e.g. "2025-05-15"). If it removes the due date, set due_at to null.
 - Respond ONLY with valid JSON matching the bead's current shape exactly — no preamble or markdown fences.
 
 Response shapes by type:
   note:  { "title": "...", "content": "..." }
   task:  { "title": "...", "due_at": "ISO8601 or null", "done": true|false, "url": "... or omit" }
   link:  { "url": "...", "label": "..." }`
+}
 
 export async function updateBeadFromDump(
   bead: { type: string; content: unknown },
@@ -111,7 +115,7 @@ export async function updateBeadFromDump(
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 2048,
-    system: UPDATE_SYSTEM_PROMPT,
+    system: updateSystemPrompt(),
     messages: [{
       role: 'user',
       content: JSON.stringify({ current_bead: { type: bead.type, content: bead.content }, dump }),
@@ -122,13 +126,17 @@ export async function updateBeadFromDump(
   return JSON.parse(text)
 }
 
-const SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has submitted an info dump into a Thread.
+function extractSystemPrompt() {
+  return `You are a personal knowledge assistant. The user has submitted an info dump into a Thread.
 Extract structured beads from the dump. Each dump becomes one or more new beads — do not try to merge with existing beads.
+
+Today's date is ${new Date().toISOString().slice(0, 10)}.
 
 Rules:
 - Always produce at least one bead.
 - Extract tasks (things to do) as task beads. If the dump includes a URL alongside a task, copy the URL verbatim into the task's "url" field. Example: "check my email https://mail.google.com" → { "type": "task", "title": "Check my email", "due_at": null, "url": "https://mail.google.com" }.
 - Create a link bead only for a standalone URL with no surrounding task context.
+- For due dates (including relative ones like "next Monday" or "tomorrow"), resolve against today's date and store as ISO8601 date only (e.g. "2025-05-15"). If no due date is mentioned, use null.
 - Note content must be in clear, well-structured markdown.
 - Respond ONLY with valid JSON, no preamble or markdown fences.
 
@@ -140,6 +148,7 @@ Response shape:
     { "type": "link", "url": "...", "label": "..." }
   ]
 }`
+}
 
 export async function extract(
   dump: string,
@@ -147,7 +156,7 @@ export async function extract(
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: extractSystemPrompt(),
     messages: [{ role: 'user', content: dump }],
   })
 
