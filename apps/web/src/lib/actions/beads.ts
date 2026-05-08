@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { extract, embedText, beadToText, mergeNotes, type NewBead } from '@/lib/extract'
+import { fetchOg } from '@/lib/og'
 import { Prisma } from '@/generated/prisma/client'
 
 async function getAuthenticatedUser() {
@@ -25,13 +26,29 @@ export async function markTaskDone(beadId: string) {
 
   const content = bead.content as { title: string; due_at: string | null; done: boolean }
 
-  const updated = await db.bead.update({
+  await db.bead.update({
     where: { id: beadId },
     data: { content: { ...content, done: true } },
   })
 
   revalidatePath('/dashboard')
-  return updated
+}
+
+export async function markTaskUndone(beadId: string) {
+  const user = await getAuthenticatedUser()
+
+  const bead = await db.bead.findUnique({ where: { id: beadId }, include: { thread: true } })
+  if (!bead || bead.thread.userId !== user.id) throw new Error('Bead not found')
+  if (bead.type !== 'task') throw new Error('Bead is not a task')
+
+  const content = bead.content as { title: string; due_at: string | null; done: boolean }
+
+  await db.bead.update({
+    where: { id: beadId },
+    data: { content: { ...content, done: false } },
+  })
+
+  revalidatePath('/dashboard')
 }
 
 export async function submitDump(threadId: string, dump: string) {
@@ -68,26 +85,42 @@ export async function submitDump(threadId: string, dump: string) {
   // Look up mergedFrom on any bead being superseded so it carries forward
   const supersededBeadIds = updated_beads.map((b) => b.supersedes).filter(Boolean) as string[]
   const supersededBeads = supersededBeadIds.length
-    ? await db.bead.findMany({ where: { id: { in: supersededBeadIds } }, select: { id: true, mergedFrom: true } })
+    ? await db.bead.findMany({ where: { id: { in: supersededBeadIds } }, select: { id: true, mergedFrom: true, content: true } })
     : []
   const mergedFromBySupersededId = Object.fromEntries(supersededBeads.map((b) => [b.id, b.mergedFrom ?? []]))
+  const doneBySupersededId = Object.fromEntries(
+    supersededBeads.map((b) => [b.id, (b.content as { done?: boolean }).done ?? false])
+  )
+
+  // Enrich link beads with OG metadata
+  await Promise.all(
+    new_beads.map(async (b) => {
+      if (b.type === 'link') {
+        const og = await fetchOg(b.url)
+        Object.assign(b, og)
+      }
+    })
+  )
 
   const created = await Promise.all([
     ...new_beads.map((b: NewBead) => {
       const content = b.type === 'task' ? { ...b, done: false } : b
       return db.bead.create({ data: { threadId, type: b.type, content: content as object } })
     }),
-    ...updated_beads.map((b) =>
-      db.bead.create({
+    ...updated_beads.map((b) => {
+      const content = b.type === 'task'
+        ? { ...b, done: doneBySupersededId[b.supersedes] ?? false }
+        : b
+      return db.bead.create({
         data: {
           threadId,
           type: b.type,
-          content: b as object,
+          content: content as object,
           supersedes: b.supersedes,
           mergedFrom: mergedFromBySupersededId[b.supersedes] ?? [],
         },
       })
-    ),
+    }),
   ])
 
   // Generate and store embeddings for all newly created beads

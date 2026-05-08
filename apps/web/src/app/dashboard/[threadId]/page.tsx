@@ -23,7 +23,7 @@ export default async function ThreadPage({ params }: Props) {
   const beads = await getBeads(threadId);
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-0">
       <ThreadHeader thread={thread} />
       <ThreadView threadId={threadId} initialBeads={beads} />
     </div>

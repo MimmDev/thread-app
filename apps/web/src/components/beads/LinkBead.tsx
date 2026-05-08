@@ -5,25 +5,59 @@ import { type BeadWithHistory } from "@/lib/actions/beads";
 type Props = { bead: BeadWithHistory };
 
 export function LinkBead({ bead }: Props) {
-  const content = bead.content as { url: string; label: string };
+  const content = bead.content as {
+    url: string;
+    label: string;
+    og_title?: string;
+    og_description?: string;
+    og_image?: string;
+    og_site_name?: string;
+    favicon?: string;
+  };
+
+  const displayTitle = content.og_title || content.label;
+  const domain = (() => {
+    try { return new URL(content.url).hostname.replace(/^www\./, ''); } catch { return content.url; }
+  })();
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 font-medium">
-          link
-        </span>
-        <span className="text-xs text-muted-foreground">{formatTime(bead.createdAt)}</span>
-      </div>
-
+    <Card className="p-0">
       <a
         href={content.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 mt-1 text-sm text-blue-500 hover:underline"
+        className="flex w-full hover:bg-muted/50 transition-colors"
       >
-        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-        {content.label}
+        {content.og_image && (
+          <div className="w-28 shrink-0 relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={content.og_image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+        )}
+        <div className="flex flex-col justify-between gap-1 p-4 min-w-0 flex-1">
+          <div className="flex items-center justify-end">
+            <span className="text-xs text-muted-foreground">{formatTime(bead.createdAt)}</span>
+          </div>
+
+          <p className="font-semibold text-sm leading-snug line-clamp-2">{displayTitle}</p>
+
+          {content.og_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{content.og_description}</p>
+          )}
+
+          <div className="flex items-center gap-1.5 mt-1">
+            {content.favicon && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={content.favicon} alt="" className="h-3.5 w-3.5 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            )}
+            <span className="text-xs text-muted-foreground">{domain}</span>
+            <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto shrink-0" />
+          </div>
+        </div>
       </a>
     </Card>
   );

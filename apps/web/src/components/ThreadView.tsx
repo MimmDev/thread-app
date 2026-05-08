@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,7 @@ function makePlaceholder(threadId: string): PlaceholderBead {
     type: "_placeholder",
     content: {},
     supersedes: null,
+    mergedFrom: [],
     createdAt: new Date(),
     history: [],
     mergedBeads: [],
@@ -33,6 +34,13 @@ export function ThreadView({ threadId, initialBeads }: Props) {
   const [dump, setDump] = useState("");
   const [pending, setPending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (feedRef.current) {
+      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    }
+  }, [beads]);
 
   async function handleJoin(idA: string, idB: string) {
     const updatedBeads = await joinBeads(idA, idB);
@@ -67,7 +75,7 @@ export function ThreadView({ threadId, initialBeads }: Props) {
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto">
+      <div ref={feedRef} className="flex-1 overflow-y-auto min-h-0">
         <BeadFeed beads={beads} onJoin={handleJoin} />
       </div>
       <div className="border-t bg-background px-4 py-3">

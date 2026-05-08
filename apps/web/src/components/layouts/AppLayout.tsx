@@ -40,7 +40,7 @@ export function AppLayout({ children, sidebarContent }: AppLayoutProps) {
           <SignOutButton />
         </SidebarFooter>
       </Sidebar>
-      <main className="flex flex-col flex-1 min-h-screen">{children}</main>
+      <main className="flex flex-col flex-1 overflow-hidden h-screen">{children}</main>
     </SidebarProvider>
   );
 }

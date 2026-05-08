@@ -32,9 +32,15 @@ export function BeadFeed({ beads, onJoin }: Props) {
     );
   }
 
+  const visibleBeads = beads.filter((bead) => {
+    if (bead.type !== "task") return true;
+    const content = bead.content as { done?: boolean };
+    return !content.done;
+  });
+
   return (
     <div className="flex flex-col gap-3 px-6 py-4">
-      {beads.map((bead) => {
+      {visibleBeads.map((bead) => {
         if (bead.type === "note") return (
           <NoteBead
             key={bead.id}

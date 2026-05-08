@@ -89,17 +89,13 @@ export function NoteBead({
           </div>
 
           {showHistory && (
-            <div className="mt-3 flex flex-col gap-2 border-l-2 border-muted pl-4">
+            <div className="mt-3 flex flex-col gap-1 border-l-2 border-muted pl-4">
               {bead.history.map((prev) => {
                 const prevContent = prev.content as { title: string; content: string };
                 return (
-                  <div key={prev.id} className="opacity-60">
-                    <p className="text-xs text-muted-foreground mb-1">{formatTime(prev.createdAt)}</p>
-                    <p className="text-sm font-medium">{prevContent.title}</p>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{prevContent.content}</ReactMarkdown>
-                    </div>
-                  </div>
+                  <p key={prev.id} className="text-xs text-muted-foreground">
+                    {prevContent.title} &mdash; {formatTime(prev.createdAt)}
+                  </p>
                 );
               })}
             </div>
