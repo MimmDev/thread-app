@@ -6,14 +6,8 @@ export type NewBead =
   | { type: 'task'; title: string; due_at: string | null; url?: string }
   | { type: 'link'; url: string; label: string }
 
-export type UpdatedBead = { supersedes: string } & (
-  | { type: 'note'; title: string; content: string }
-  | { type: 'task'; title: string; due_at: string | null; url?: string }
-)
-
 export type ExtractionResult = {
   new_beads: NewBead[]
-  updated_beads: UpdatedBead[]
 }
 
 const anthropic = new Anthropic()
@@ -97,17 +91,45 @@ Jose was a bad candidate.
   return message.content.find((b) => b.type === 'text')?.text.trim() ?? content
 }
 
-const SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has submitted an info dump into a Thread.
-Given the thread's existing beads as context and the raw dump, produce meaningful beads.
+const UPDATE_SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has selected an existing bead and submitted a dump describing changes to it. Update the bead's content based on the dump.
 
 Rules:
-- Always produce at least one bead. The user has deliberately submitted this dump and expects it to be captured.
-- Extract tasks (things to do) as task beads. If the dump includes a URL alongside a task, you MUST copy the URL verbatim into the task's "url" field — do not omit it, do not create a separate link bead for it. Example: "check my email https://mail.google.com" → { "type": "task", "title": "Check my email", "due_at": null, "url": "https://mail.google.com" }.
+- Modify only what the dump explicitly changes or adds. Preserve everything else.
+- For notes: content must be in clear, well-structured markdown.
+- For tasks: if the dump mentions a new due date, parse it as ISO8601. If it removes the due date, set due_at to null.
+- Respond ONLY with valid JSON matching the bead's current shape exactly — no preamble or markdown fences.
+
+Response shapes by type:
+  note:  { "title": "...", "content": "..." }
+  task:  { "title": "...", "due_at": "ISO8601 or null", "done": true|false, "url": "... or omit" }
+  link:  { "url": "...", "label": "..." }`
+
+export async function updateBeadFromDump(
+  bead: { type: string; content: unknown },
+  dump: string,
+): Promise<unknown> {
+  const message = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 2048,
+    system: UPDATE_SYSTEM_PROMPT,
+    messages: [{
+      role: 'user',
+      content: JSON.stringify({ current_bead: { type: bead.type, content: bead.content }, dump }),
+    }],
+  })
+  const raw = message.content.find((b) => b.type === 'text')?.text ?? ''
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+  return JSON.parse(text)
+}
+
+const SYSTEM_PROMPT = `You are a personal knowledge assistant. The user has submitted an info dump into a Thread.
+Extract structured beads from the dump. Each dump becomes one or more new beads — do not try to merge with existing beads.
+
+Rules:
+- Always produce at least one bead.
+- Extract tasks (things to do) as task beads. If the dump includes a URL alongside a task, copy the URL verbatim into the task's "url" field. Example: "check my email https://mail.google.com" → { "type": "task", "title": "Check my email", "due_at": null, "url": "https://mail.google.com" }.
 - Create a link bead only for a standalone URL with no surrounding task context.
-- For notes: strongly prefer updating an existing note over creating a new one. If the dump is about the same subject as an existing note bead — even partially — produce an updated_bead that rewrites that note to incorporate the new information. Only create a new note bead if the content is genuinely about a different subject with no relevant existing note. When updating, incorporate all old and new information without losing content.
-- For tasks: if the dump refers to an existing task (same action, even if worded differently) — e.g. adding a due date, changing the deadline, or refining the title — produce an updated_bead for that task instead of a new one.
-- All note content must be in markdown.
-- If none of the existing beads are relevant, ignore them.
+- Note content must be in clear, well-structured markdown.
 - Respond ONLY with valid JSON, no preamble or markdown fences.
 
 Response shape:
@@ -116,39 +138,28 @@ Response shape:
     { "type": "note", "title": "...", "content": "..." },
     { "type": "task", "title": "...", "due_at": "ISO8601 or null", "url": "https://... or omit if no URL" },
     { "type": "link", "url": "...", "label": "..." }
-  ],
-  "updated_beads": [
-    { "supersedes": "<existing bead id>", "type": "note", "title": "...", "content": "..." },
-    { "supersedes": "<existing bead id>", "type": "task", "title": "...", "due_at": "ISO8601 or null", "url": "https://... or omit" }
   ]
 }`
 
 export async function extract(
   dump: string,
-  contextBeads: unknown[]
 ): Promise<ExtractionResult> {
-  const userMessage = JSON.stringify({ context_beads: contextBeads, dump })
-
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
+    messages: [{ role: 'user', content: dump }],
   })
 
   const raw = message.content.find((b) => b.type === 'text')?.text ?? ''
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
   const result = JSON.parse(text) as ExtractionResult
 
-  // Format all note content in parallel
-  await Promise.all([
-    ...result.new_beads.map(async (b) => {
+  await Promise.all(
+    result.new_beads.map(async (b) => {
       if (b.type === 'note') b.content = await formatNoteContent(b.content)
-    }),
-    ...result.updated_beads.map(async (b) => {
-      if (b.type === 'note') b.content = await formatNoteContent(b.content)
-    }),
-  ])
+    })
+  )
 
   return result
 }

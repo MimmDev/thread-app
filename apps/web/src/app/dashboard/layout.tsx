@@ -29,6 +29,7 @@ export default async function DashboardLayout({
 
   return (
     <AppLayout
+      threads={threads}
       sidebarContent={
         <ThreadList threads={threads} />
       }

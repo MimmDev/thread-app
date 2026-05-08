@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createThread } from "@/lib/actions/threads";
@@ -46,14 +46,24 @@ export function NewThreadButton() {
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Threads
         </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-5 w-5"
-          onClick={() => setCreatingThread(true)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={() => document.dispatchEvent(new CustomEvent("spotlight:open"))}
+          >
+            <Search className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={() => setCreatingThread(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       {creatingThread && (
         <form onSubmit={handleSubmit}>

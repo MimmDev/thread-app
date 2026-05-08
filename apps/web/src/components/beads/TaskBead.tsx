@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { markTaskDone, markTaskUndone } from "@/lib/actions/beads";
 
 type Props = {
   bead: { id: string; content: unknown; createdAt: Date };
   thread?: { id: string; title: string };
+  isSelected?: boolean;
+  onComplete?: () => void;
+  onDelete?: () => void;
+  onSelect?: () => void;
 };
 
-export function TaskBead({ bead, thread }: Props) {
+export function TaskBead({ bead, thread, isSelected, onComplete, onDelete, onSelect }: Props) {
   const content = bead.content as {
     title: string;
     due_at: string | null;
@@ -20,20 +26,17 @@ export function TaskBead({ bead, thread }: Props) {
   };
   const [done, setDone] = useState(content.done ?? false);
   const [pending, setPending] = useState(false);
-  const [fading, setFading] = useState(false);
 
   async function handleCheck() {
     if (pending) return;
     setPending(true);
     if (!done) {
-      setFading(true);
       setDone(true);
-      await new Promise((r) => setTimeout(r, 500));
       try {
         await markTaskDone(bead.id);
+        onComplete?.();
       } catch {
         setDone(false);
-        setFading(false);
       }
     } else {
       setDone(false);
@@ -46,11 +49,10 @@ export function TaskBead({ bead, thread }: Props) {
     setPending(false);
   }
 
+  const overdue = !done && !!content.due_at && isPastDue(content.due_at);
+
   return (
-    <Card className={`relative p-4 transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"}`}>
-      {!done && content.due_at && isPastDue(content.due_at) && (
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-destructive" />
-      )}
+    <Card className={`relative p-4 ${overdue ? "border-l-[6px] border-l-destructive" : ""} ${isSelected ? "ring-2 ring-blue-500" : ""}`} onClick={onSelect}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-2 py-0.5 font-medium">
           task
@@ -67,6 +69,18 @@ export function TaskBead({ bead, thread }: Props) {
           <span className="text-xs text-muted-foreground">
             {formatTime(bead.createdAt)}
           </span>
+          {onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="text-destructive" onClick={onDelete}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3 mt-0">
@@ -86,13 +100,13 @@ export function TaskBead({ bead, thread }: Props) {
               className="ml-1 text-blue-500 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
-              ({(() => { try { return new URL(content.url).hostname.replace(/^www\./, ''); } catch { return content.url; } })()})
+              ({(() => { try { return new URL(content.url!).hostname.replace(/^www\./, ''); } catch { return content.url; } })()})
             </a>
           )}
         </span>
         {content.due_at && (
-          <span className={`text-xs shrink-0 ${!done && isPastDue(content.due_at) ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-            {!done && isPastDue(content.due_at) ? "overdue " : "due "}{formatDue(content.due_at)}
+          <span className={`text-xs shrink-0 ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+            {overdue ? "overdue " : "due "}{formatDue(content.due_at)}
           </span>
         )}
       </div>
@@ -115,6 +129,5 @@ function isPastDue(iso: string) {
 }
 
 function formatDue(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }

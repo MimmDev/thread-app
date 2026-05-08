@@ -10,9 +10,13 @@ import { Card } from "@/components/ui/card";
 type Props = {
   beads: BeadWithHistory[];
   onJoin: (idA: string, idB: string) => Promise<void>;
+  onTaskComplete: (beadId: string) => void;
+  onDelete: (beadId: string) => void;
+  selectedBeadId?: string | null;
+  onSelectBead?: (bead: BeadWithHistory) => void;
 };
 
-export function BeadFeed({ beads, onJoin }: Props) {
+export function BeadFeed({ beads, onJoin, onTaskComplete, onDelete, selectedBeadId, onSelectBead }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
 
@@ -47,15 +51,35 @@ export function BeadFeed({ beads, onJoin }: Props) {
             bead={bead}
             isDragging={draggingId === bead.id}
             isDropTarget={dropTargetId === bead.id && draggingId !== bead.id}
+            isSelected={selectedBeadId === bead.id}
             onDragStart={() => setDraggingId(bead.id)}
             onDragEnd={() => { setDraggingId(null); setDropTargetId(null); }}
             onDragOver={(e: React.DragEvent) => { e.preventDefault(); setDropTargetId(bead.id); }}
             onDragLeave={() => setDropTargetId(null)}
             onDrop={() => handleDrop(bead.id)}
+            onDelete={() => onDelete(bead.id)}
+            onSelect={() => onSelectBead?.(bead)}
           />
         );
-        if (bead.type === "task") return <TaskBead key={bead.id} bead={bead} />;
-        if (bead.type === "link") return <LinkBead key={bead.id} bead={bead} />;
+        if (bead.type === "task") return (
+          <TaskBead
+            key={bead.id}
+            bead={bead}
+            isSelected={selectedBeadId === bead.id}
+            onComplete={() => onTaskComplete(bead.id)}
+            onDelete={() => onDelete(bead.id)}
+            onSelect={() => onSelectBead?.(bead)}
+          />
+        );
+        if (bead.type === "link") return (
+          <LinkBead
+            key={bead.id}
+            bead={bead}
+            isSelected={selectedBeadId === bead.id}
+            onDelete={() => onDelete(bead.id)}
+            onSelect={() => onSelectBead?.(bead)}
+          />
+        );
         if (bead.type === "_placeholder") return (
           <Card key={bead.id} className="p-4 text-sm text-muted-foreground animate-pulse">
             Processing info dump...

@@ -20,6 +20,7 @@ model Thread {
   id        String   @id @default(cuid())
   title     String
   status    String   @default("active")
+  tags      String[] @default([])
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
@@ -32,10 +33,7 @@ model Bead {
   thread      Thread                  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   type        String
   content     Json
-  supersedes  String?
   mergedFrom  String[]                @default([])
-  previous    Bead?                   @relation("BeadHistory", fields: [supersedes], references: [id])
-  next        Bead[]                  @relation("BeadHistory")
   createdAt   DateTime                @default(now())
   embedding   Unsupported("vector(1536)")?
 }

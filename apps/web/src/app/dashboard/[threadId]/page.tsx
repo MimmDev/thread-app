@@ -24,7 +24,7 @@ export default async function ThreadPage({ params }: Props) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <ThreadHeader thread={thread} />
+      <ThreadHeader thread={{ ...thread, tags: (thread as unknown as { tags?: string[] }).tags ?? [] }} />
       <ThreadView threadId={threadId} initialBeads={beads} />
     </div>
   );

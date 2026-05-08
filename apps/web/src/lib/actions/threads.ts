@@ -23,7 +23,7 @@ export async function getThreads() {
   })
 }
 
-export async function updateThread(id: string, data: { title?: string; status?: string }) {
+export async function updateThread(id: string, data: { title?: string; status?: string; tags?: string[] }) {
   const user = await getAuthenticatedUser()
 
   const thread = await db.thread.update({
