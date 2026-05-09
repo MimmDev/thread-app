@@ -5,7 +5,7 @@ import { SendHorizontal, Mic, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BeadFeed } from "@/components/BeadFeed";
-import { submitDump, joinBeads, deleteBead, updateBeadContent, type BeadWithHistory } from "@/lib/actions/beads";
+import { submitDump, joinBeads, deleteBead, updateBeadContent, createFileBead, type BeadWithHistory } from "@/lib/actions/beads";
 
 type Props = {
   threadId: string;
@@ -34,6 +34,7 @@ export function ThreadView({ threadId, initialBeads }: Props) {
   const [recording, setRecording] = useState(false);
   const [interim, setInterim] = useState("");
   const [selectedBead, setSelectedBead] = useState<BeadWithHistory | null>(null);
+  const [draggingFile, setDraggingFile] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const feedRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
@@ -130,9 +131,43 @@ export function ThreadView({ threadId, initialBeads }: Props) {
     setInterim("");
   }
 
+  async function handleFileDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDraggingFile(false);
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    setPending(true);
+    try {
+      const res = await fetch("/api/upload/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, mimeType: file.type, size: file.size }),
+      });
+      const { key, url } = await res.json();
+      await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      const updatedBeads = await createFileBead(threadId, key, file.name, file.size, file.type);
+      shouldScrollRef.current = true;
+      setBeads(updatedBeads as BeadWithHistory[]);
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <>
-      <div ref={feedRef} className="flex-1 overflow-y-auto min-h-0">
+      <div
+        ref={feedRef}
+        className="flex-1 overflow-y-auto min-h-0 relative"
+        onDragOver={(e) => { e.preventDefault(); if (e.dataTransfer.types.includes("Files")) setDraggingFile(true); }}
+        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDraggingFile(false); }}
+        onDrop={handleFileDrop}
+      >
+        {draggingFile && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 border-2 border-dashed border-primary rounded-lg pointer-events-none">
+            <p className="text-sm font-medium text-primary">Drop file to upload</p>
+          </div>
+        )}
         <BeadFeed
           beads={beads}
           onJoin={handleJoin}

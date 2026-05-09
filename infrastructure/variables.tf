@@ -38,3 +38,14 @@ variable "auth_logout_urls" {
   description = "Allowed logout URLs"
   type        = list(string)
 }
+
+variable "aws_region" {
+  description = "AWS region for S3 and other resources"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "s3_cors_origins" {
+  description = "Allowed origins for S3 CORS (presigned PUT uploads)"
+  type        = list(string)
+}

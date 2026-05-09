@@ -79,7 +79,7 @@ export function NoteBead({
 
       <p className="font-semibold mt-1">{content.title}</p>
       <div className="prose prose-sm dark:prose-invert mt-1 max-w-none">
-        <ReactMarkdown>{content.content}</ReactMarkdown>
+        <ReactMarkdown skipHtml disallowedElements={["script", "style", "iframe"]}>{content.content}</ReactMarkdown>
       </div>
 
       {mergedBeads.length > 0 && (

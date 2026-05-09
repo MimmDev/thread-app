@@ -12,3 +12,10 @@ auth_logout_urls = [
   "http://localhost:3000",
   "https://thread.mimm.dev",
 ]
+
+aws_region = "ap-southeast-2"
+
+s3_cors_origins = [
+  "http://localhost:3000",
+  "https://thread.mimm.dev",
+]

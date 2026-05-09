@@ -4,7 +4,15 @@ terraform {
       source  = "auth0/auth0"
       version = "~> 1.4"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
+}
+
+provider "aws" {
+  region = var.aws_region
 }
 
 provider "auth0" {

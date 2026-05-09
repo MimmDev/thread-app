@@ -5,6 +5,7 @@ import { type BeadWithHistory } from "@/lib/actions/beads";
 import { NoteBead } from "@/components/beads/NoteBead";
 import { TaskBead } from "@/components/beads/TaskBead";
 import { LinkBead } from "@/components/beads/LinkBead";
+import { FileBead } from "@/components/beads/FileBead";
 import { Card } from "@/components/ui/card";
 
 type Props = {
@@ -73,6 +74,15 @@ export function BeadFeed({ beads, onJoin, onTaskComplete, onDelete, selectedBead
         );
         if (bead.type === "link") return (
           <LinkBead
+            key={bead.id}
+            bead={bead}
+            isSelected={selectedBeadId === bead.id}
+            onDelete={() => onDelete(bead.id)}
+            onSelect={() => onSelectBead?.(bead)}
+          />
+        );
+        if (bead.type === "file") return (
+          <FileBead
             key={bead.id}
             bead={bead}
             isSelected={selectedBeadId === bead.id}

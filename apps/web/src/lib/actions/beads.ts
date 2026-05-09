@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { extract, updateBeadFromDump, embedText, beadToText, mergeNotes, type NewBead } from '@/lib/extract'
 import { fetchOg } from '@/lib/og'
+import { presignGet, presignDownload, deleteObject } from '@/lib/s3'
 import { Prisma } from '@/generated/prisma/client'
 
 async function getAuthenticatedUser() {
@@ -29,10 +30,61 @@ export async function updateBeadContent(beadId: string, dump: string) {
   return getBeadsForThread(bead.threadId)
 }
 
+export async function createFileBead(
+  threadId: string,
+  key: string,
+  filename: string,
+  size: number,
+  mimeType: string,
+) {
+  const user = await getAuthenticatedUser()
+  if (!key.startsWith(`${user.id}/`)) throw new Error('Invalid key')
+
+  const thread = await db.thread.findUnique({ where: { id: threadId, userId: user.id } })
+  if (!thread) throw new Error('Thread not found')
+
+  await db.bead.create({
+    data: { threadId, type: 'file', content: { key, filename, size, mimeType } },
+  })
+
+  revalidatePath('/dashboard')
+  return getBeadsForThread(threadId)
+}
+
+export async function getFileDownloadUrl(beadId: string) {
+  const user = await getAuthenticatedUser()
+  const bead = await db.bead.findUnique({ where: { id: beadId }, include: { thread: true } })
+  if (!bead || bead.thread.userId !== user.id) throw new Error('Bead not found')
+  if (bead.type !== 'file') throw new Error('Not a file bead')
+
+  const { key, filename } = bead.content as { key: string; filename: string }
+  if (!key.startsWith(`${user.id}/`)) throw new Error('Unauthorized')
+
+  return presignDownload(key, filename)
+}
+
+export async function getFileDisplayUrl(beadId: string) {
+  const user = await getAuthenticatedUser()
+  const bead = await db.bead.findUnique({ where: { id: beadId }, include: { thread: true } })
+  if (!bead || bead.thread.userId !== user.id) throw new Error('Bead not found')
+  if (bead.type !== 'file') throw new Error('Not a file bead')
+
+  const { key } = bead.content as { key: string }
+  if (!key.startsWith(`${user.id}/`)) throw new Error('Unauthorized')
+
+  return presignGet(key)
+}
+
 export async function deleteBead(beadId: string) {
   const user = await getAuthenticatedUser()
   const bead = await db.bead.findUnique({ where: { id: beadId }, include: { thread: true } })
   if (!bead || bead.thread.userId !== user.id) throw new Error('Bead not found')
+
+  if (bead.type === 'file') {
+    const { key } = bead.content as { key: string }
+    if (key.startsWith(`${user.id}/`)) await deleteObject(key)
+  }
+
   await db.bead.delete({ where: { id: beadId } })
   revalidatePath('/dashboard')
 }

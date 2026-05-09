@@ -20,6 +20,10 @@ resource "auth0_connection" "database" {
     brute_force_protection = true
     requires_username      = false
   }
+
+  lifecycle {
+    ignore_changes = [options]
+  }
 }
 
 resource "auth0_connection_clients" "database" {

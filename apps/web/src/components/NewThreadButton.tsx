@@ -44,7 +44,7 @@ export function NewThreadButton() {
     <div className="flex flex-col gap-1 w-full">
       <div className="flex items-center justify-between pl-2 pr-1 mb-1">
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Threads
+          Recent Threads
         </span>
         <div className="flex items-center">
           <Button

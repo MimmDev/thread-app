@@ -19,11 +19,19 @@ export default async function DashboardLayout({
       where: { email: session.user.email },
     });
     if (user) {
-      threads = await db.thread.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        select: { id: true, title: true, status: true },
+      const raw = await db.thread.findMany({
+        where: { userId: user.id, status: "active" },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          createdAt: true,
+          beads: { select: { createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
+        },
       });
+      threads = raw
+        .map((t) => ({ ...t, lastActivity: t.beads[0]?.createdAt ?? t.createdAt }))
+        .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     }
   }
 
